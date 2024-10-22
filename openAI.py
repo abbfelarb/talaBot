@@ -11,13 +11,18 @@ client = OpenAI(
     api_key=os.environ.get("OPENAI_API_KEY"),
 )
 
-while True:
-    message = input("User : ")
+
+def response(message):
+
     if message:
         messages.append(
             {"role": "user", "content": message},
         )
         chat = client.chat.completions.create(messages=messages, model="gpt-3.5-turbo")
     reply = chat.choices[0].message.content
-    print(f"ChatGPT: {reply}")
     messages.append({"role": "assistant", "content": reply})
+
+    return reply
+
+
+print(response("hello!"))
