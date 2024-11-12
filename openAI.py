@@ -3,10 +3,10 @@ import os
 from openai import OpenAI
 from dotenv import load_dotenv
 
-base = [{"role": "system", "content": "you are a helpful assistant"}]
+base = [{"role": "system", "content": "you är en hjälpsam assistent"}]
 
 load_dotenv()
-client = OpenAI(
+client = OpenAI(    
     api_key=os.environ.get("OPENAI_API_KEY"),
 )
 
