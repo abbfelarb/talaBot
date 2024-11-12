@@ -1,4 +1,5 @@
 import piper.auto as auto
+import io
 import os
 import json
 from flask import Flask, request, after_this_request, send_file
@@ -24,15 +25,8 @@ def get_response():
 def get_sound(id):
     path = f"./temp/talsyntes_{id}.wav"
 
-    file_handle = open(path, 'r')
-    @after_this_request
-    def remove_file(response):
-        try:
-            os.remove(path)
-            file_handle.close()
-        except Exception as error:
-            app.logger.error("Error removing or closing downloaded file handle", error)
-        return response
+
+    
     return send_file(
          path, 
          mimetype="audio/wav", 
