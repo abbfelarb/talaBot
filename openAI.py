@@ -3,26 +3,36 @@ import os
 from openai import OpenAI
 from dotenv import load_dotenv
 
-messages = [{"role": "system", "content": "You are an intelligent assistant."}]
+base = [{"role": "system", "content": "you are a helpful assistant"}]
 
 load_dotenv()
 client = OpenAI(
-    # This is the default and can be omitted
     api_key=os.environ.get("OPENAI_API_KEY"),
 )
 
 
-def response(message):
+def response(message, chat_messages):
+    if not chat_messages:
+        chat_messages = base
 
     if message:
-        messages.append(
+        chat_messages.append(
             {"role": "user", "content": message},
         )
-        chat = client.chat.completions.create(messages=messages, model="gpt-3.5-turbo")
-    reply = chat.choices[0].message.content
-    messages.append({"role": "assistant", "content": reply})
+        chat = client.chat.completions.create(
+            messages=chat_messages, model="gpt-3.5-turbo"
+        )
+        reply = chat.choices[0].message.content
+        chat_messages.append({"role": "assistant", "content": reply})
 
-    return reply
+        return reply, chat_messages
+    else:
+        print("ERROR: no message given in response()")
 
 
-print(response("hello!"))
+# test
+# MESSAGES = []
+# while True:
+#     reply = response(input(), MESSAGES)
+#     MESSAGES = reply[1]
+#     print(reply[0])
