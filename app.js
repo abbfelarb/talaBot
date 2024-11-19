@@ -1,10 +1,16 @@
 // Check if the browser supports the Web Speech API
 window.SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 
+function setup_recognition() {
+    
 const recognition = new SpeechRecognition();
 recognition.lang = 'sv-SE';  // Set language to Swedish
 recognition.interimResults = true;  // Display words as the user speaks
 recognition.continuous = false;  // We're manually restarting recognition for continuous effect
+return recognition
+}
+
+let recognition = setup_recognition();
 
 const startRecordBtn = document.getElementById('start-record-btn');
 const stopRecordBtn = document.getElementById('stop-record-btn');
@@ -12,6 +18,9 @@ const saveTextBtn = document.getElementById('save-text-btn');
 const copyTextBtn = document.getElementById('copy-text-btn');
 const textOutput = document.getElementById('text-output');
 const savedTexts = document.getElementById('saved-texts');
+const submitBtn = document.getElementById('submit');
+let messageHistory = [];
+let sound_id = "";
 
 let finalTranscript = '';
 let isRecording = false;  // To track if the user wants to stop or continue
@@ -77,4 +86,30 @@ recognition.addEventListener('end', () => {
     if (isRecording) {
         recognition.start();  // Restart recognition if not manually stopped
     }
+});
+
+submitBtn.addEventListener('click', () => {
+   let newMessage = textOutput.value; 
+   fetch('/api/v0/get_response', {
+    method: 'POST',
+    headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ "message": newMessage, "chat_messages": messageHistory })
+})
+   .then(response => response.json()).then(resp => {
+       
+       textOutput.value = ""
+    isRecording = false;  // User clicked stop, we won't restart recognition
+    recognition.stop();
+    startRecordBtn.disabled = false;
+    stopRecordBtn.disabled = true;
+    finalTranscript = ""
+       let sound_id = resp["id"]
+       messageHistory = resp["chat_messages"]
+       const ctx = new AudioContext();
+       const audio = new Audio("/api/v0/get_sound/"+sound_id);
+       audio.play();
+   })
 });
