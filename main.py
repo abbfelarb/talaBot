@@ -12,10 +12,10 @@ api_version = "/api/v0"
 
 @app.route(f"{api_version}/get_response", methods=["POST"])
 def get_response():
-    data = request.form
+    data = request.json
     print(data)
     message = data["message"]
-    chat_messages = json.loads(data["chat_messages"])
+    chat_messages = data["chat_messages"]
     print(type(chat_messages))
     resp, chat_messages = response(message, chat_messages)
     id = auto.create_sound(resp)
