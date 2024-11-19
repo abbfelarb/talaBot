@@ -12,6 +12,8 @@ const saveTextBtn = document.getElementById('save-text-btn');
 const copyTextBtn = document.getElementById('copy-text-btn');
 const textOutput = document.getElementById('text-output');
 const savedTexts = document.getElementById('saved-texts');
+const submitBtn = document.getElementById('submit');
+let messageHistory = "";
 
 let finalTranscript = '';
 let isRecording = false;  // To track if the user wants to stop or continue
@@ -77,4 +79,18 @@ recognition.addEventListener('end', () => {
     if (isRecording) {
         recognition.start();  // Restart recognition if not manually stopped
     }
+});
+
+submitBtn.addEventListener('click', () => {
+   let newMessage = textOutput.value; 
+   fetch('/api/v0/get_response', {
+    method: 'POST',
+    headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ "message": newMessage, "chat_messages": messageHistory })
+})
+   .then(response => response.json())
+   .then(response => console.log(JSON.stringify(response)))
 });
