@@ -31,8 +31,9 @@ def response(message, chat_messages):
 
 
 # test
-# MESSAGES = []
-# while True:
-#     reply = response(input(), MESSAGES)
-#     MESSAGES = reply[1]
-#     print(reply[0])
+if __name__ == "__main__":
+    MESSAGES = []
+    while True:
+        reply = response(input(), MESSAGES)
+        MESSAGES = reply[1]
+        print(reply[0])
