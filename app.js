@@ -8,11 +8,14 @@ const copyTextBtn = document.getElementById('copy-text-btn');
 const textOutput = document.getElementById('text-output');
 const savedTexts = document.getElementById('saved-texts');
 const submitBtn = document.getElementById('submit');
+const messageHistoryFeild = document.getElementById('message-history')
 let messageHistory = [];
 let sound_id = "";
 
 let finalTranscript = '';
 let isRecording = false;  // To track if the user wants to stop or continue
+
+console.log(messageHistory) 
     
 function setup_recognition() {
 const recognition = new SpeechRecognition();
@@ -90,7 +93,11 @@ submitBtn.addEventListener('click', () => {
     }
     finalTranscript = ""
     
+    
    let newMessage = textOutput.value; 
+    let nm = document.createElement("p")
+    nm.innerHTML = "User: "+newMessage;
+    messageHistoryFeild.appendChild(nm)
     textOutput.value = ""
    fetch('/api/v0/get_response', {
     method: 'POST',
@@ -107,6 +114,15 @@ submitBtn.addEventListener('click', () => {
     
        let sound_id = resp["id"]
        messageHistory = resp["chat_messages"]
+        messageHistoryFeild.innerHTML = ""
+        let mh = messageHistory.slice(1)
+    for (mes in mh) {
+    let nm = document.createElement("p")
+    nm.innerHTML = (mh[mes].role == "user" ? "User: " : "AI: ") + mh[mes].content
+    console.log(mh[mes]);
+    messageHistoryFeild.appendChild(nm)
+        
+    }
        const ctx = new AudioContext();
        const audio = new Audio("/api/v0/get_sound/"+sound_id);
        audio.play();

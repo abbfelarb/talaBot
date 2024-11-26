@@ -11,9 +11,13 @@ client = OpenAI(
 )
 
 
-def response(message, chat_messages):
-    if not chat_messages:
-        chat_messages = base
+def response(message, messages):
+    print("\nmessages: ", messages)
+    if len(messages) == 0:
+        chat_messages = list(base)
+    else: chat_messages = messages
+
+    print("\nchat_messages: ", chat_messages, "\n")
 
     if message:
         chat_messages.append(

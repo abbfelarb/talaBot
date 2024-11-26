@@ -16,7 +16,7 @@ def get_response():
     print(data)
     message = data["message"]
     chat_messages = data["chat_messages"]
-    print(type(chat_messages))
+    print(chat_messages)
     resp, chat_messages = response(message, chat_messages)
     id = auto.create_sound(resp)
 
