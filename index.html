@@ -49,11 +49,6 @@
         overflow-y: auto;
         background-color: #f9f9f9;
       }
-      .saved-text {
-        background-color: #e0e0e0;
-        padding: 10px;
-        margin: 10px 0;
-      }
     </style>
   </head>
   <body>
@@ -65,21 +60,15 @@
 
       <button id="start-record-btn">Starta inspelning</button>
       <button id="stop-record-btn" disabled>Stoppa inspelning</button>
-      <button id="save-text-btn" disabled>Spara text</button>
-      <button id="copy-text-btn" disabled>Kopiera text</button>
+      <button id="copy-text-btn">Kopiera text</button>
 
       <textarea
         id="text-output"
         placeholder="Din text kommer att visas här..."
-        readonly
       ></textarea>
-      <button id="submit">Submit</button>
+      <button id="submit" onclick="console.log('click')">Submit</button>
     </div>
-
-    <div id="saved-texts">
-      <h3>Sparade texter</h3>
-    </div>
-
+    
     <script src="app.js"></script>
   </body>
 </html>

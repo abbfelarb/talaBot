@@ -43,8 +43,7 @@ def index():
 @app.route("/app.js")
 def js():
 
-    f = open("app.js", "rb")
-    return f.read()
+    return send_file("./app.js", mimetype="application/javascript")
 
 
 if __name__ == "__main__":
