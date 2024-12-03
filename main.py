@@ -36,8 +36,7 @@ def get_sound(id):
 @app.route("/")
 def index():
 
-    f = open("index.html", "rb")
-    return f.read()
+    return send_file("index.html", mimetype="text/html")
 
 
 @app.route("/app.js")
