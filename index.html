@@ -3,75 +3,220 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Voice to Text (Swedish)</title>
+    <title>TalaBot</title>
     <style>
-      body {
-        font-family: Arial, sans-serif;
-        display: flex;
-        justify-content: center;
-        align-items: flex-start;
-        padding: 50px;
-      }
-      .container {
-        width: 50%;
-        margin-right: 20px;
-      }
-      h1 {
-        color: #333;
-        text-align: center;
-      }
-      #text-output {
-        width: 100%;
-        height: 150px;
-        font-size: 18px;
-        padding: 10px;
-        border: 1px solid #ccc;
-        margin-top: 20px;
-        resize: none;
-      }
-      button {
-        background-color: #4caf50;
-        color: white;
-        padding: 10px 20px;
-        font-size: 16px;
-        margin: 10px;
-        border: none;
-        cursor: pointer;
-      }
-      button:hover {
-        background-color: #45a049;
-      }
-      #saved-texts {
-        width: 30%;
-        padding: 10px;
-        border: 1px solid #ccc;
-        height: 250px;
-        overflow-y: auto;
-        background-color: #f9f9f9;
-      }
+body {
+  font-family: Arial, sans-serif;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  background-color: #e8f5e9;
+  margin: 0;
+}
+
+.chat-container {
+  width: 60%;
+  max-width: 800px;
+  background-color: #ffffff;
+  border: 1px solid #ccc;
+  border-radius: 10px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  padding: 20px;
+  height: 80vh;
+  overflow: hidden;
+}
+
+.chat-header {
+  text-align: center;
+  font-size: 24px;
+  font-weight: bold;
+  color: #2e7d32;
+}
+
+.chat-history {
+  flex: 1;
+  overflow-y: auto;
+  padding: 10px;
+  margin-bottom: 10px;
+}
+
+.chat-bubble {
+  max-width: 70%;
+  padding: 10px;
+  margin: 5px 0;
+  border-radius: 15px;
+  font-size: 16px;
+  position: relative;
+}
+
+.chat-bubble.user {
+  background-color: #2e7d32;
+  color: white;
+  align-self: flex-end;
+  text-align: right;
+}
+
+.chat-bubble.user::after {
+  content: '';
+  position: absolute;
+  right: -10px;
+  top: 10px;
+  border-width: 10px 0 10px 15px;
+  border-style: solid;
+  border-color: transparent transparent transparent #2e7d32;
+}
+
+.chat-bubble.ai {
+  background-color: #a5d6a7;
+  color: black;
+  align-self: flex-start;
+  text-align: left;
+}
+
+.chat-bubble.ai::after {
+  content: '';
+  position: absolute;
+  left: -10px;
+  top:10x;
+  border-width: 10px 15px 10px 0;
+  border-style: solid;
+  border-color: transparent #a5d6a7 transparent transparent;
+}
+
+.chat-input {
+  display: flex;
+  gap: 10px;
+}
+
+textarea {
+  width: 100%;
+  resize: none;
+  height: 60px;
+  padding: 10px;
+  font-size: 16px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+
+button {
+  padding: 10px;
+  font-size: 16px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: all 0.3s ease; /* Lägg till övergång för alla effekter */
+}
+
+#submit {
+  background-color: #4caf50;
+  color: white;
+}
+
+#submit:hover {
+  background-color: #388e3c; /* Färgändring vid hovring */
+}
+
+#submit:focus {
+  outline: none; /* Ta bort kantlinje när knappen är fokuserad */
+  background-color: #388e3c; /* Färgen när fokuserad */
+}
+
+/* Mikrofonknappen */
+.microphone-btn {
+  background-color: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: 24px;
+  color: #2e7d32; /* Ursprunglig färg */
+  position: relative;
+  transition: color 0.3s ease, transform 0.2s ease; /* Lägg till en mjuk övergång för färger och transformering */
+}
+
+/* Hover-effekt för mikrofonknappen */
+.microphone-btn:hover {
+  color: #b0b0b0; /* Grå färg vid hovring */
+  transform: scale(1.1); /* Liten förstoring vid hovring för extra visuell effekt */
+}
+
+.microphone-btn:disabled {
+  color: #aaa;
+  cursor: not-allowed;
+}
+
+.microphone-btn:after {
+  content: '';
+  width: 16px;
+  height: 16px;
+  border: 2px solid #2e7d32;
+  border-top-color: transparent;
+  border-radius: 50%;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  animation: spin 1s linear infinite;
+  display: none;
+}
+
+.microphone-btn.recording:after {
+  display: block;
+}
+
+/* Loading-hjulet */
+.loading-spinner {
+  position: absolute;
+  top: 50%;
+  left: 100%;
+  margin-left: 10px;
+  width: 20px;
+  height: 20px;
+  border: 3px solid #f3f3f3; /* Ljusa delen */
+  border-top: 3px solid #3498db; /* Blå delen som snurrar */
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  opacity: 0; /* Dölj spinnern initialt */
+}
+
+/* Animation för att snurra hjulet */
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* När mikrofonen är på ska spinnern vara synlig */
+.is-listening .loading-spinner {
+  opacity: 1;
+}
+
+@keyframes spin {
+  from {
+    transform: translate(-50%, -50%) rotate(0deg);
+  }
+  to {
+    transform: translate(-50%, -50%) rotate(360deg);
+  }
+}
+
+
 
     </style>
   </head>
   <body>
-    <div class="container">
-      <h1>Tal till text på svenska</h1>
-      <p>
-        Klicka på knappen och tala. Ditt tal kommer att omvandlas till text.
-      </p>
+    <div class="chat-container">
+      <div class="chat-header">TalaBot - Tala med AI, på svenska</div>
+      <div id="message-history" class="chat-history"></div>
+      <div class="chat-input">
+        <textarea id="text-output" placeholder="Din text kommer att visas här..."></textarea>
+        <button id="submit">Skicka</button>
+        <button id="start-record-btn" class="microphone-btn">🎤</button>
+        <button id="toggle-conversation-mode" style="position: fixed; top: 20px; right: 20px; padding: 10px 20px; background-color: #4caf50; color: white; border: none; border-radius: 5px; cursor: pointer;">Aktivera konversationsläge</button>
+        <div id="loading-spinner" class="loading-spinner"></div>
 
-      <button id="start-record-btn">Starta inspelning</button>
-      <button id="stop-record-btn" disabled>Stoppa inspelning</button>
-      <button id="copy-text-btn">Kopiera text</button>
-
-      <textarea
-        id="text-output"
-        placeholder="Din text kommer att visas här..."
-      ></textarea>
-      <button id="submit" onclick="console.log('click')">Submit</button>
-    <div id ="message-history">
+      </div>
     </div>
-    </div>
-    
-    <script src="app.js"></script>
+    <script src="app.js"></script><div id="record-indicator" class="record-indicator"></div> <!-- Röd indikator bredvid mikrofonknappen -->
   </body>
 </html>
