@@ -89,19 +89,20 @@ copyTextBtn.addEventListener('click', () => {
 
 submitBtn.addEventListener('click', () => {
   console.log("click")
+  submitBtn.disabled = true;
   isRecording = false;  // User clicked stop, we won't restart recognition
   try {
     recognition.stop();
   } catch (e) {
     console.log(e)
   }
-  finalTranscript = ""
-
+  finalTranscript = "";
 
 
   let newMessage = textOutput.value;
   if (newMessage.trim() == "") {
     console.log("empty message");
+    submitBtn.disabled = false;
   } else {
     let nm = document.createElement("p")
     nm.innerHTML = "User: " + newMessage;
@@ -135,7 +136,6 @@ submitBtn.addEventListener('click', () => {
         const audio = new Audio("/api/v0/get_sound/" + sound_id);
         audio.play();
         isListening = true;
-        submitBtn.disabled = true;
         audio.addEventListener("ended", () => {
           submitBtn.disabled = false;
         })
