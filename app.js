@@ -15,6 +15,8 @@ let sound_id = "";
 let finalTranscript = '';
 let isRecording = false;  // To track if the user wants to stop or continue
 
+let recognition = null;
+
 console.log(messageHistory) 
     
 function setup_recognition() {
@@ -26,7 +28,7 @@ return recognition
 }
 
 try {
-let recognition = setup_recognition();
+recognition = setup_recognition();
 // Capture speech recognition results
 recognition.addEventListener('result', (event) => {
     let interimTranscript = '';
