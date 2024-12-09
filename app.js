@@ -88,15 +88,44 @@ function sendMessage(newMessage) {
     .then(resp => {
       let sound_id = resp["id"];
       messageHistory = resp["chat_messages"];
-
+      
+      let ai_box = document.createElement("div");
+      ai_box.style.display = "flex"
+      ai_box.style.alignItems = "center"
+      
       let aiBubble = document.createElement("div");
       aiBubble.className = "chat-bubble ai";
       aiBubble.textContent = resp.chat_messages[resp.chat_messages.length - 1].content;
-      messageHistoryField.appendChild(aiBubble);
-      messageHistoryField.scrollTop = messageHistoryField.scrollHeight;
+      
+      // add bubble to box
+      ai_box.appendChild(aiBubble);
 
       const audio = new Audio("/api/v0/get_sound/" + sound_id);
       audio.play();
+
+      let replay_button = document.createElement("button");
+      let button_image = document.createElement("img");
+      replay_button.style.backgroundColor = "white"
+      button_image.src = "https://cdn.iconscout.com/icon/free/png-256/free-speaker-icon-download-in-svg-png-gif-file-formats--audio-volume-advertising-annoucement-user-interface-vol-1-pack-icons-2202518.png?f=webp&w=256"
+      button_image.width = 20;
+      button_image.height = 20;
+
+      replay_button.onclick = () => {
+        if (!isSpeaking) {
+          audio.play();
+          isSpeaking = true;
+        }
+      }
+      
+      // add button to box
+      replay_button.appendChild(button_image);
+
+      ai_box.appendChild(replay_button);
+
+      
+      // add box
+      messageHistoryField.appendChild(ai_box)
+      messageHistoryField.scrollTop = messageHistoryField.scrollHeight;
 
       // När AI:n har pratat klart, avvakta och sätt på mikrofonen igen
       audio.onended = () => {
