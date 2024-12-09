@@ -101,7 +101,9 @@ function sendMessage(newMessage) {
       // När AI:n har pratat klart, avvakta och sätt på mikrofonen igen
       audio.onended = () => {
         if (conversationMode) {
-          recognition.start(); // Starta mikrofonen när AI:n har slutat prata
+          if (!isListening) {
+            recognition.start(); // Starta mikrofonen när AI:n har slutat prata
+          }
           isListening = true;  // Sätt flaggan på true när mikrofonen är på      
         }
         isSpeaking = false;
