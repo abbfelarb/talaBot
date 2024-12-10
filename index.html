@@ -180,6 +180,12 @@ button {
   opacity: 0; /* Dölj spinnern initialt */
 }
 
+
+#normal-mode-buttons {
+  display: flex;
+  flex-direction: row;
+}
+
 /* Animation för att snurra hjulet */
 @keyframes spin {
   0% { transform: rotate(0deg); }
@@ -210,8 +216,10 @@ button {
       <div id="message-history" class="chat-history"></div>
       <div class="chat-input">
         <textarea id="text-output" placeholder="Din text kommer att visas här..."></textarea>
-        <button id="submit">Skicka</button>
-        <button id="start-record-btn" class="microphone-btn">🎤</button>
+        <div id ="normal-mode-buttons">
+          <button id="submit">Skicka</button>
+          <button id="start-record-btn" class="microphone-btn">🎤</button>
+        </div>
         <button id="toggle-conversation-mode" style="position: fixed; top: 20px; right: 20px; padding: 10px 20px; background-color: #4caf50; color: white; border: none; border-radius: 5px; cursor: pointer;">Aktivera konversationsläge</button>
         <div id="loading-spinner" class="loading-spinner"></div>
 

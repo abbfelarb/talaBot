@@ -47,7 +47,7 @@ try {
           if (conversationMode) {
             submitBtn.click();  // Simulera ett klick på skicka-knappen efter 2 sekunder tystnad
           }
-        }, 2000); // Vänta 2 sekunder för att se om det blir tyst
+        }, 1000); // Vänta 2 sekunder för att se om det blir tyst
       } else {
         interimTranscript += event.results[i][0].transcript;
       }
@@ -112,6 +112,8 @@ function sendMessage(newMessage) {
 
       replay_button.onclick = () => {
         if (!isSpeaking) {
+          recognition.stop();
+          isListening = false;  // Sätt flaggan på false när mikrofonen stängs av
           audio.play();
           isSpeaking = true;
         }
@@ -150,10 +152,20 @@ toggleConversationModeBtn.addEventListener('click', () => {
   conversationMode = !conversationMode;
   if (conversationMode) {
     toggleConversationModeBtn.textContent = 'Byt till normalt läge';
+    
+    requestAnimationFrame(() => {
+      document.getElementById("normal-mode-buttons").style.display = "none"; 
+     });
     startConversation(); // Starta mikrofonen automatiskt när vi går in i konversationsläge
   } else {
     toggleConversationModeBtn.textContent = 'Aktivera konversationsläge';
-    recognition.stop(); // Stoppa mikrofonen om vi går tillbaka till normalt läge
+
+     // Batch visibility updates for the submit and microphone buttons
+    requestAnimationFrame(() => {
+      document.getElementById("normal-mode-buttons").style.display = "flex";
+    });
+    
+     recognition.stop(); // Stoppa mikrofonen om vi går tillbaka till normalt läge
     isListening = false;  // Sätt flaggan på false när mikrofonen stängs av
   }
 });
