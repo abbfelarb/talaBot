@@ -88,15 +88,15 @@ function sendMessage(newMessage) {
     .then(resp => {
       let sound_id = resp["id"];
       messageHistory = resp["chat_messages"];
-      
+
       let ai_box = document.createElement("div");
       ai_box.style.display = "flex"
       ai_box.style.alignItems = "center"
-      
+
       let aiBubble = document.createElement("div");
       aiBubble.className = "chat-bubble ai";
       aiBubble.textContent = resp.chat_messages[resp.chat_messages.length - 1].content;
-      
+
       // add bubble to box
       ai_box.appendChild(aiBubble);
 
@@ -118,13 +118,13 @@ function sendMessage(newMessage) {
           isSpeaking = true;
         }
       }
-      
+
       // add button to box
       replay_button.appendChild(button_image);
 
       ai_box.appendChild(replay_button);
 
-      
+
       // add box
       messageHistoryField.appendChild(ai_box)
       messageHistoryField.scrollTop = messageHistoryField.scrollHeight;
@@ -132,7 +132,9 @@ function sendMessage(newMessage) {
       // När AI:n har pratat klart, avvakta och sätt på mikrofonen igen
       audio.onended = () => {
         if (conversationMode) {
-          recognition.start(); // Starta mikrofonen när AI:n har slutat prata
+          if (!isListening) {
+            recognition.start(); // Starta mikrofonen när AI:n har slutat prata
+          }
           isListening = true;  // Sätt flaggan på true när mikrofonen är på      
         }
         isSpeaking = false;
@@ -173,6 +175,8 @@ toggleConversationModeBtn.addEventListener('click', () => {
 // Automatisk knappklickning för "Skicka"-knappen
 submitBtn.addEventListener('click', () => {
   let newMessage = textOutput.value.trim();
+  textOutput.value = "";
+  finalTranscript = "";
   if (newMessage) {
     sendMessage(newMessage);
   }
