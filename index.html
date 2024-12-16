@@ -43,9 +43,8 @@ body {
   padding: 10px;
   margin-bottom: 10px;
 }
-
 .chat-bubble {
-  max-width: 70%;
+  max-width: 70%; /* Behåll breddbegränsningen */
   padding: 10px;
   margin: 5px 0;
   border-radius: 15px;
@@ -56,8 +55,9 @@ body {
 .chat-bubble.user {
   background-color: #2e7d32;
   color: white;
-  align-self: flex-end;
+  align-self: flex-end; /* Placera längst till höger */
   text-align: right;
+  margin-left: auto; /* Tvinga bubblan till höger */
 }
 
 .chat-bubble.user::after {
@@ -73,19 +73,21 @@ body {
 .chat-bubble.ai {
   background-color: #a5d6a7;
   color: black;
-  align-self: flex-start;
+  align-self: flex-start; /* Placera längst till vänster */
   text-align: left;
+  margin-right: auto; /* Tvinga bubblan till vänster */
 }
 
 .chat-bubble.ai::after {
   content: '';
   position: absolute;
   left: -10px;
-  top:10x;
+  top: 10px;
   border-width: 10px 15px 10px 0;
   border-style: solid;
   border-color: transparent #a5d6a7 transparent transparent;
 }
+
 
 .chat-input {
   display: flex;
@@ -197,6 +199,19 @@ button {
   outline: none; /* Ta bort kantlinje när knappen är fokuserad */
   background-color: #388e3c; /* Färgen när fokuserad */
 }
+.pause-btn {
+    background-color: #e53935 !important;  /* Röd färg */
+    color: white;
+    border: none;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background-color 0.3s ease;
+}
+
+.pause-btn:hover {
+    background-color: #c01111; /* Mörkare röd vid hover */
+}
+
 
 /* Mikrofonknappen */
 .microphone-btn {
@@ -254,6 +269,12 @@ button {
   opacity: 0; /* Dölj spinnern initialt */
 }
 
+
+#normal-mode-buttons {
+  display: flex;
+  flex-direction: row;
+}
+
 /* Animation för att snurra hjulet */
 @keyframes spin {
   0% { transform: rotate(0deg); }
@@ -284,8 +305,10 @@ button {
       <div id="message-history" class="chat-history"></div>
       <div class="chat-input">
         <textarea id="text-output" placeholder="Din text kommer att visas här..."></textarea>
-        <button id="submit">Skicka</button>
-        <button id="start-record-btn" class="microphone-btn">🎤</button>
+        <div id ="normal-mode-buttons">
+          <button id="submit">Skicka</button>
+          <button id="start-record-btn" class="microphone-btn">🎤</button>
+        </div>
         <button id="toggle-conversation-mode" style="position: fixed; top: 20px; right: 20px; padding: 10px 20px; background-color: #4caf50; color: white; border: none; border-radius: 5px; cursor: pointer;">Aktivera konversationsläge</button>
         <div id="loading-spinner" class="loading-spinner"></div>
 

@@ -2,9 +2,10 @@ window.SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecogn
 
 const startRecordBtn = document.getElementById('start-record-btn');
 const textOutput = document.getElementById('text-output');
-const submitBtn = document.getElementById('submit');
+let submitBtn = document.getElementById('submit');
 const messageHistoryField = document.getElementById('message-history');
 const toggleConversationModeBtn = document.getElementById('toggle-conversation-mode');
+const pauseBtn = document.querySelector('.pause-btn');
 
 let messageHistory = [];
 let finalTranscript = '';  // Den här ska alltid hållas tom när vi startar taligenkänning
@@ -14,6 +15,9 @@ let conversationMode = false;
 let silenceTimeout = null;
 let isListening = false;  // Flagga för att hålla reda på om mikrofonen är aktiv
 let isSpeaking = false;
+let synth = window.speechSynthesis;
+let currentUtterance = null;  // Håller reda på den aktuella uppläsningen
+let isPaused = false;  // Håller reda på om rösten är pausad
 
 function setup_recognition() {
   const recognition = new SpeechRecognition();
@@ -47,7 +51,7 @@ try {
           if (conversationMode) {
             submitBtn.click();  // Simulera ett klick på skicka-knappen efter 2 sekunder tystnad
           }
-        }, 2000); // Vänta 2 sekunder för att se om det blir tyst
+        }, 1000); // Vänta 2 sekunder för att se om det blir tyst
       } else {
         interimTranscript += event.results[i][0].transcript;
       }
@@ -64,22 +68,82 @@ try {
   console.log(e);
 }
 
+function pauseSpeaking(audio) {
+  if (isPaused) return; // Om ljudet redan är pausat, gör inget
+  audio.pause(); // Pausa ljudet
+  isPaused = true;
+
+  // Uppdatera knappen tillbaka till "Skicka"
+  resetSubmitButton();
+  isSpeaking = false;
+}
+
+function resetSubmitButton() {
+  // Ta bort gamla eventlisteners
+  const newButton = submitBtn.cloneNode(true);
+  submitBtn.parentNode.replaceChild(newButton, submitBtn);
+  submitBtn = newButton; // Uppdatera referensen till submitBtn
+
+  // Återställ knappen
+  submitBtn.classList.remove("pause-btn");
+  console.log("Knappen återställd:", submitBtn.className); // Logga klasserna för att verifiera
+  submitBtn.textContent = "Skicka";
+  submitBtn.disabled = false;
+
+  // Lägg till standardfunktionen för "Skicka"
+  submitBtn.addEventListener('click', () => {
+    let newMessage = textOutput.value.trim();
+    if (newMessage && !isSpeaking) { // Kontrollera om meddelandet redan är skickat
+      sendMessage(newMessage);
+    }
+  });
+}
+
+function speak(text) {
+  // Om en uppläsning pågår, pausa den
+  if (currentUtterance && synth.speaking) {
+    synth.pause();
+    isPaused = true; // Sätt flaggan på pausad
+  }
+
+  // Skapa ett nytt SpeechSynthesisUtterance-objekt
+  currentUtterance = new SpeechSynthesisUtterance(text);
+  currentUtterance.lang = 'sv-SE';  // Sätt språket till svenska
+  currentUtterance.onend = function() {
+    // När uppläsningen är klar, återställ tillståndet
+    isPaused = false;
+    pauseBtn.textContent = 'Pausa';
+    pauseBtn.style.backgroundColor = '#e53935'; // Sätt tillbaka färgen
+  };
+
+  // Börja läsa upp texten
+  synth.speak(currentUtterance);
+}
+
 function sendMessage(newMessage) {
-  if (!newMessage) return;
-  if (isSpeaking) return;
+  const messageHistoryField = document.getElementById('message-history');
+  if (!newMessage || isSpeaking) return;
   isSpeaking = true;
 
-  // Skicka meddelandet automatiskt
-  let userBubble = document.createElement("div");
-  userBubble.className = "chat-bubble user";
-  userBubble.textContent = newMessage;
-  messageHistoryField.appendChild(userBubble);
+  const userMessage = document.createElement('div');
+  userMessage.classList.add('chat-bubble', 'user');
+  userMessage.textContent = newMessage;  // Här använd 'newMessage'
+  messageHistoryField.appendChild(userMessage);
+
 
   let thinkBubble = document.createElement("div");
   thinkBubble.className = "chat-bubble ai think-dots";
   messageHistoryField.appendChild(thinkBubble);
 
   messageHistoryField.scrollTop = messageHistoryField.scrollHeight;
+
+  // Ändra knappen till "Pausa"
+  submitBtn.classList.add("pause-btn");
+  void submitBtn.offsetWidth; // Tvingar ommålning
+  submitBtn.textContent = "Pausa";
+
+  submitBtn.disabled = false;
+
 
   fetch('/api/v0/get_response', {
     method: 'POST',
@@ -118,6 +182,8 @@ function sendMessage(newMessage) {
 
       replay_button.onclick = () => {
         if (!isSpeaking) {
+          recognition.stop();
+          isListening = false;  // Sätt flaggan på false när mikrofonen stängs av
           audio.play();
           isSpeaking = true;
         }
@@ -134,6 +200,9 @@ function sendMessage(newMessage) {
       messageHistoryField.scrollTop = messageHistoryField.scrollHeight;
 
       // När AI:n har pratat klart, avvakta och sätt på mikrofonen igen
+      submitBtn.onclick = () => {
+        pauseSpeaking(audio); // Koppla pausknappen till att pausa ljudet
+      };
       audio.onended = () => {
         if (conversationMode) {
           if (!isListening) {
@@ -153,14 +222,25 @@ function sendMessage(newMessage) {
   isListening = false;  // Sätt flaggan på false när mikrofonen stängs av
 }
 
+
 // Lägg till en eventlistener för konversationsläget
 toggleConversationModeBtn.addEventListener('click', () => {
   conversationMode = !conversationMode;
   if (conversationMode) {
     toggleConversationModeBtn.textContent = 'Byt till normalt läge';
+
+    requestAnimationFrame(() => {
+      document.getElementById("normal-mode-buttons").style.display = "none";
+    });
     startConversation(); // Starta mikrofonen automatiskt när vi går in i konversationsläge
   } else {
     toggleConversationModeBtn.textContent = 'Aktivera konversationsläge';
+
+    // Batch visibility updates for the submit and microphone buttons
+    requestAnimationFrame(() => {
+      document.getElementById("normal-mode-buttons").style.display = "flex";
+    });
+
     recognition.stop(); // Stoppa mikrofonen om vi går tillbaka till normalt läge
     isListening = false;  // Sätt flaggan på false när mikrofonen stängs av
   }
@@ -171,7 +251,7 @@ submitBtn.addEventListener('click', () => {
   let newMessage = textOutput.value.trim();
   textOutput.value = "";
   finalTranscript = "";
-  if (newMessage) {
+  if (newMessage && !isSpeaking) {
     sendMessage(newMessage);
   }
 });
@@ -188,4 +268,20 @@ startRecordBtn.addEventListener('click', () => {
     recognition.start();
     isListening = true;  // Starta mikrofonen om den är avstängd
   }
+});
+
+pauseBtn.addEventListener('click', function() {
+  if (isPaused) {
+    // Återuppta uppläsning om den är pausad
+    synth.resume();
+    pauseBtn.textContent = 'Pausa';
+    pauseBtn.style.backgroundColor = '#e53935';
+  } else {
+    // Pausa uppläsning om den är igång
+    synth.pause();
+    pauseBtn.textContent = 'Återuppta';
+    pauseBtn.style.backgroundColor = '#ff5722';
+  }
+
+  isPaused = !isPaused;  // Växla mellan pausad och icke-pausad
 });
