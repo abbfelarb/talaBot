@@ -74,6 +74,11 @@ function sendMessage(newMessage) {
   userBubble.className = "chat-bubble user";
   userBubble.textContent = newMessage;
   messageHistoryField.appendChild(userBubble);
+
+  let thinkBubble = document.createElement("div");
+  thinkBubble.className = "chat-bubble ai think-dots";
+  messageHistoryField.appendChild(thinkBubble);
+
   messageHistoryField.scrollTop = messageHistoryField.scrollHeight;
 
   fetch('/api/v0/get_response', {
@@ -88,6 +93,7 @@ function sendMessage(newMessage) {
     .then(resp => {
       let sound_id = resp["id"];
       messageHistory = resp["chat_messages"];
+      thinkBubble.remove()
 
       let ai_box = document.createElement("div");
       ai_box.style.display = "flex"
