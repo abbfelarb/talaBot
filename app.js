@@ -7,6 +7,8 @@ const messageHistoryField = document.getElementById('message-history');
 const toggleConversationModeBtn = document.getElementById('toggle-conversation-mode');
 const pauseBtn = document.querySelector('.pause-btn');
 
+let get_response_controller = new AbortController();
+let current_audio = null;
 let messageHistory = [];
 let finalTranscript = '';  // Den här ska alltid hållas tom när vi startar taligenkänning
 let isRecording = false;
@@ -79,10 +81,6 @@ function pauseSpeaking(audio) {
 }
 
 function resetSubmitButton() {
-  // Ta bort gamla eventlisteners
-  const newButton = submitBtn.cloneNode(true);
-  submitBtn.parentNode.replaceChild(newButton, submitBtn);
-  submitBtn = newButton; // Uppdatera referensen till submitBtn
 
   // Återställ knappen
   submitBtn.classList.remove("pause-btn");
@@ -90,13 +88,6 @@ function resetSubmitButton() {
   submitBtn.textContent = "Skicka";
   submitBtn.disabled = false;
 
-  // Lägg till standardfunktionen för "Skicka"
-  submitBtn.addEventListener('click', () => {
-    let newMessage = textOutput.value.trim();
-    if (newMessage && !isSpeaking) { // Kontrollera om meddelandet redan är skickat
-      sendMessage(newMessage);
-    }
-  });
 }
 
 function speak(text) {
@@ -121,6 +112,7 @@ function speak(text) {
 }
 
 function sendMessage(newMessage) {
+  console.log("sending message", isSpeaking, newMessage);
   const messageHistoryField = document.getElementById('message-history');
   if (!newMessage || isSpeaking) return;
   isSpeaking = true;
@@ -144,6 +136,7 @@ function sendMessage(newMessage) {
 
   submitBtn.disabled = false;
 
+  get_response_controller = new AbortController();
 
   fetch('/api/v0/get_response', {
     method: 'POST',
@@ -151,7 +144,8 @@ function sendMessage(newMessage) {
       'Accept': 'application/json',
       'Content-Type': 'application/json'
     },
-    body: JSON.stringify({ message: newMessage, chat_messages: messageHistory })
+    body: JSON.stringify({ message: newMessage, chat_messages: messageHistory }),
+    signal: get_response_controller.signal
   })
     .then(response => response.json())
     .then(resp => {
@@ -172,6 +166,7 @@ function sendMessage(newMessage) {
 
       const audio = new Audio("/api/v0/get_sound/" + sound_id);
       audio.play();
+      current_audio = audio;
 
       let replay_button = document.createElement("button");
       let button_image = document.createElement("img");
@@ -199,10 +194,6 @@ function sendMessage(newMessage) {
       messageHistoryField.appendChild(ai_box)
       messageHistoryField.scrollTop = messageHistoryField.scrollHeight;
 
-      // När AI:n har pratat klart, avvakta och sätt på mikrofonen igen
-      submitBtn.onclick = () => {
-        pauseSpeaking(audio); // Koppla pausknappen till att pausa ljudet
-      };
       audio.onended = () => {
         if (conversationMode) {
           if (!isListening) {
@@ -212,7 +203,17 @@ function sendMessage(newMessage) {
         }
         isSpeaking = false;
       };
-    });
+    }).catch(_ => {
+      if (conversationMode) {
+        if (!isListening) {
+          recognition.start(); // Starta mikrofonen när AI:n har slutat prata
+        }
+        isListening = true;  // Sätt flaggan på true när mikrofonen är på      
+      }
+      isSpeaking = false;
+      thinkBubble.remove()
+    })
+
 
   // Töm textoutput-fältet automatiskt efter att meddelandet skickats
   textOutput.value = "";
@@ -220,8 +221,8 @@ function sendMessage(newMessage) {
   // Stäng av mikrofonen efter att meddelandet skickats
   recognition.stop();
   isListening = false;  // Sätt flaggan på false när mikrofonen stängs av
-}
 
+};
 
 // Lägg till en eventlistener för konversationsläget
 toggleConversationModeBtn.addEventListener('click', () => {
@@ -248,6 +249,17 @@ toggleConversationModeBtn.addEventListener('click', () => {
 
 // Automatisk knappklickning för "Skicka"-knappen
 submitBtn.addEventListener('click', () => {
+  if (isSpeaking) {
+    get_response_controller.abort()
+
+    resetSubmitButton();
+    isSpeaking = false;
+    if (current_audio) {
+
+      current_audio.pause();
+    }
+    return;
+  }
   let newMessage = textOutput.value.trim();
   textOutput.value = "";
   finalTranscript = "";
@@ -272,6 +284,7 @@ startRecordBtn.addEventListener('click', () => {
 
 pauseBtn.addEventListener('click', function() {
   if (isPaused) {
+    resetSubmitButton();
     // Återuppta uppläsning om den är pausad
     synth.resume();
     pauseBtn.textContent = 'Pausa';
