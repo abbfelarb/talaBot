@@ -179,7 +179,14 @@ function sendMessage(newMessage) {
         if (!isSpeaking) {
           recognition.stop();
           isListening = false;  // Sätt flaggan på false när mikrofonen stängs av
+          audio.currentTime = 0;
+          current_audio = audio
           audio.play();
+          submitBtn.classList.add("pause-btn");
+          void submitBtn.offsetWidth; // Tvingar ommålning
+          submitBtn.textContent = "Pausa";
+
+          submitBtn.disabled = false;
           isSpeaking = true;
         }
       }
@@ -201,6 +208,7 @@ function sendMessage(newMessage) {
           }
           isListening = true;  // Sätt flaggan på true när mikrofonen är på      
         }
+        resetSubmitButton();
         isSpeaking = false;
       };
     }).catch(_ => {
